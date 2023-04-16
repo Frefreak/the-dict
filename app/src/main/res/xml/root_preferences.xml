@@ -1,0 +1,61 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/enabled_dictionary">
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="enabled_free_dictionary"
+            android:title="@string/free_dictionary_api" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="enabled_merriam_webster"
+            android:title="@string/merriam_webster" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/ankidroid_setting">
+
+        <EditTextPreference
+            android:defaultValue="The_Dict"
+            android:key="anki_deck_name"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/anki_deck_name" />
+        <EditTextPreference
+            android:defaultValue="The_Dict_Model"
+            android:key="anki_model_name"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/anki_model_name" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/test_dict">
+        <EditTextPreference
+            android:defaultValue="@string/default_test_dict_word"
+            android:key="test_dict_word"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/lookup_word" />
+
+        <nz.carso.thedict.preferences.TriggerText
+            android:key="test_free_dictionary_api"
+            android:title="@string/test_free_dictionary_api" />
+        <nz.carso.thedict.preferences.TriggerText
+            android:key="test_merriam_webster_api"
+            android:title="@string/test_merriam_webster_api" />
+
+    </PreferenceCategory>
+
+
+    <PreferenceCategory android:title="@string/merriam_webster_api_setting">
+        <EditTextPreference
+            android:defaultValue=""
+            android:key="merriam_webster_dictionary_key"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/merriam_webster_dict_key" />
+        <EditTextPreference
+            android:defaultValue=""
+            android:key="merriam_webster_thesaurus_key"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/merriam_webster_thesaurus_key" />
+    </PreferenceCategory>
+</PreferenceScreen>

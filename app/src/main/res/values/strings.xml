@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">The Dict</string>
+    <string name="add">add</string>
+    <string name="settings">Settings</string>
+    <string name="enabled_dictionary">Enabled Dictionaries</string>
+    <string name="free_dictionary_api">Free Dictionary API</string>
+    <string name="merriam_webster">Merriam-Webster API</string>
+    <string name="free_dictionary_api_setting">Free Dictionary API Setting</string>
+    <string name="test_free_dictionary_api">Test free dictionary API</string>
+    <string name="merriam_webster_api_setting">Merriam-Webster API Setting</string>
+    <string name="test_merriam_webster_api">Test Merriam-Webster API</string>
+    <string name="api_test_failed">API test failed</string>
+    <string name="test_dict">Test Dict</string>
+    <string name="default_test_dict_word">test</string>
+    <string name="lookup_word">Lookup Word</string>
+    <string name="merriam_webster_dict_key">Key (Dictionary)</string>
+    <string name="merriam_webster_thesaurus_key">Key (Thesaurus)</string>
+    <string name="search_query_is_empty">search query is empty</string>
+    <string name="ankidroid_setting">AnkiDroid Setting</string>
+    <string name="anki_deck_name">Anki Deck Name</string>
+    <string name="anki_model_name">Anki Model Name</string>
+    <string name="deck_name_empty">deck name empty, please configure it in settings</string>
+    <string name="model_name_empty">model name empty, please configure it in settings</string>
+    <string name="process_text_action_name">Dict->Anki</string>
+</resources>
