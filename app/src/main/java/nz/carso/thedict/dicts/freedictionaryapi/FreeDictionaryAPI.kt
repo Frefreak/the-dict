@@ -1,8 +1,19 @@
 package nz.carso.thedict.dicts.freedictionaryapi
 
 import android.content.Context
+import android.widget.Toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.html.DIV
+import kotlinx.html.TagConsumer
+import kotlinx.html.audio
+import kotlinx.html.div
+import kotlinx.html.h1
+import kotlinx.html.h3
+import kotlinx.html.html
+import kotlinx.html.p
+import kotlinx.html.source
+import kotlinx.html.stream.createHTML
 import kotlinx.serialization.Serializable
 import nz.carso.thedict.dicts.Dict
 import nz.carso.thedict.dicts.getThis
@@ -42,7 +53,41 @@ object FreeDictionaryAPI: Dict {
     }
 
     override suspend fun lookupInHTML(context: Context, word: String): String? {
-        TODO("Not yet implemented")
+        val url = "https://api.dictionaryapi.dev/api/v2/entries/en/$word"
+        val obj = withContext(Dispatchers.IO) {
+            val (jsonData, err) = getThis<List<FreeDictionaryAPIResponse>>(url)
+            if (err != "") {
+                Toast.makeText(context, err.toString(), Toast.LENGTH_SHORT).show()
+                return@withContext null
+            }
+            if (jsonData!!.isEmpty()) {
+                Toast.makeText(context, "result is empty", Toast.LENGTH_SHORT).show()
+                return@withContext null
+            }
+            jsonData[0]
+        } ?: return null
+        val html = createHTML().div {
+            div(classes="free-dictionary") {
+                div(classes="card") {
+                    div(classes="card-body") {
+                        div(classes="pronunciation") {
+                            h3(classes = "pronunciation-title") {
+                                +"Pronunciation"
+                            }
+                            if (obj.phonetics.isNotEmpty() && obj.phonetics[0].audio != null) {
+                                audio(classes = "audio") {
+                                    controls = true
+                                    source {
+                                        src = obj.phonetics[0].audio!!
+                                        type = "audio/mp3"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return html
     }
-
 }

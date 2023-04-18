@@ -4,7 +4,6 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
@@ -12,6 +11,14 @@ import androidx.core.app.ShareCompat
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import com.ichi2.anki.api.AddContentApi
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.html.body
+import kotlinx.html.div
+import kotlinx.html.html
+import kotlinx.html.stream.appendHTML
+import nz.carso.thedict.Constants.ANKI_MODEL_CSS
 import nz.carso.thedict.Constants.ANKI_PERMISSION
 
 object Utils {
@@ -38,17 +45,17 @@ object Utils {
         return true
     }
 
-    fun addSimpleCard(context: Context, front: String, back: String) {
+    fun addCard(context: Context, front: String, back: String): Long? {
         if (AddContentApi.getAnkiDroidPackageName(context) != null) {
             if (!checkAndRequestPermission(context)) {
-                return
+                return null
             }
             val manager = PreferenceManager.getDefaultSharedPreferences(context)
             val deckName = manager.getString("anki_deck_name", "")
             val modelName = manager.getString("anki_model_name", "")
             if (deckName == "") {
                 Toast.makeText(context, context.getString(R.string.deck_name_empty), Toast.LENGTH_SHORT).show()
-                return
+                return null
             }
             if (modelName == "") {
                 Toast.makeText(context, context.getString(R.string.model_name_empty), Toast.LENGTH_SHORT).show()
@@ -57,7 +64,7 @@ object Utils {
             val api = AddContentApi(context)
             val deckId = getDeckId(api, deckName!!)
             val modelId = getModelId(api, modelName!!)
-            api.addNote(modelId, deckId, arrayOf(front, back), null)
+            return api.addNote(modelId, deckId, arrayOf(front, back), null)
         } else {
             // Fallback on ACTION_SEND Share Intent if the API is unavailable
             val shareIntent = ShareCompat.IntentBuilder(context)
@@ -69,6 +76,7 @@ object Utils {
             if (shareIntent.resolveActivity(context.packageManager) != null) {
                 context.startActivity(shareIntent)
             }
+            return 0
         }
     }
 
@@ -88,13 +96,52 @@ object Utils {
                 return it.key
             }
         }
-        return api.addNewBasicModel(modelName)
+        return api.addNewCustomModel(modelName, arrayOf("front", "back"), arrayOf("TheCard"),
+            arrayOf("{{front}}"), arrayOf("{{back}}"), ANKI_MODEL_CSS, null, null)
     }
 
-    fun addCardWithWord(context: Context, word: String) {
-        val manager = PreferenceManager.getDefaultSharedPreferences()
-        for (conf in Config.enabledDict) {
-            conf.enabledKey
+    suspend fun addCardWithWord(context: Context, word: String) {
+        val manager = PreferenceManager.getDefaultSharedPreferences(context)
+        val jobList = mutableListOf<Pair<String, Deferred<String?>>>()
+        val resultList = mutableListOf<Pair<String, String>>()
+
+        coroutineScope {
+            for (conf in Config.enabledDict) {
+                val enabled = manager.getBoolean(conf.enabledKey, false)
+                if (enabled) {
+                    coroutineScope {
+                        val job = async { conf.klass.lookupInHTML(context, word) }
+                        job.join()
+                        jobList.add(Pair(conf.name, job))
+                    }
+                }
+            }
+        }
+        for (pair in jobList) {
+            val res = pair.second.await()
+            res?.let {
+                resultList.add(Pair(pair.first, it))
+            } ?: {
+                resultList.add(Pair(pair.first, "unavailable"))
+            }
+        }
+        val html = buildString {
+            appendHTML().html {
+                body {
+                    resultList.forEach {
+                        div {
+                            it.first
+                            it.second
+                        }
+                    }
+                }
+            }
+        }
+        val result = addCard(context, word, html)
+        if (result == null) {
+            Toast.makeText(context, "\"${word}\": failed", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, "\"${word}\": success", Toast.LENGTH_SHORT).show()
         }
     }
 }

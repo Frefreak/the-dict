@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity() {
 </body>
 </html>
 """
-            Utils.addSimpleCard(this@MainActivity, word, placeholer)
+            Utils.addCard(this@MainActivity, word, placeholer)
         }
 
     }
