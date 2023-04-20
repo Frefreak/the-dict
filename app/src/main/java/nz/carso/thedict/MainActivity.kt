@@ -11,6 +11,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.SearchView
 import android.widget.Toast
+import kotlinx.coroutines.runBlocking
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,28 +63,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, getString(R.string.search_query_is_empty), Toast.LENGTH_SHORT).show()
                 return
             }
-            val placeholer = """<!DOCTYPE html>
-<html>
-<head>
-<style>
-  body { font-family: Arial, sans-serif; }
-  h1 { color: blue; }
-  p { font-size: 18px; }
-  a { color: green; text-decoration: none; }
-  .highlight { background-color: yellow; }
-  body, div, p {
-    text-align: left;
-  }
-</style>
-</head>
-<body>
-  <h1>Welcome to WebView!</h1>
-  <p>This is an example of <span class="highlight">styled</span> HTML content.</p>
-  <p>Visit <a href="https://www.example.com">Example.com</a> for more information.</p>
-</body>
-</html>
-"""
-            Utils.addCard(this@MainActivity, word, placeholer)
+            runBlocking { Utils.addCardWithWord(this@MainActivity, word) }
         }
 
     }

@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.pm.PackageManager
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ShareCompat
@@ -16,8 +17,12 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.html.body
 import kotlinx.html.div
+import kotlinx.html.h1
+import kotlinx.html.h2
+import kotlinx.html.h4
 import kotlinx.html.html
 import kotlinx.html.stream.appendHTML
+import kotlinx.html.unsafe
 import nz.carso.thedict.Constants.ANKI_MODEL_CSS
 import nz.carso.thedict.Constants.ANKI_PERMISSION
 
@@ -45,7 +50,7 @@ object Utils {
         return true
     }
 
-    fun addCard(context: Context, front: String, back: String): Long? {
+    private fun addCard(context: Context, front: String, back: String): Long? {
         if (AddContentApi.getAnkiDroidPackageName(context) != null) {
             if (!checkAndRequestPermission(context)) {
                 return null
@@ -120,24 +125,30 @@ object Utils {
         for (pair in jobList) {
             val res = pair.second.await()
             res?.let {
+                Log.i("wtf", "add: $it")
                 resultList.add(Pair(pair.first, it))
             } ?: {
                 resultList.add(Pair(pair.first, "unavailable"))
             }
         }
-        val html = buildString {
+        val front = """<div class="card-front">${word}</div>"""
+        val back = buildString {
             appendHTML().html {
                 body {
                     resultList.forEach {
                         div {
-                            it.first
-                            it.second
+                            h2 {
+                                +it.first
+                            }
+                            unsafe {
+                                +it.second
+                            }
                         }
                     }
                 }
             }
         }
-        val result = addCard(context, word, html)
+        val result = addCard(context, front, back)
         if (result == null) {
             Toast.makeText(context, "\"${word}\": failed", Toast.LENGTH_SHORT).show()
         } else {

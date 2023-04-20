@@ -1,6 +1,7 @@
 package nz.carso.thedict.dicts.freedictionaryapi
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -13,6 +14,7 @@ import kotlinx.html.h3
 import kotlinx.html.html
 import kotlinx.html.p
 import kotlinx.html.source
+import kotlinx.html.span
 import kotlinx.html.stream.createHTML
 import kotlinx.serialization.Serializable
 import nz.carso.thedict.dicts.Dict
@@ -24,7 +26,7 @@ data class FreeDictionaryAPIResponse(val word: String, val phonetic: String? = n
                                     val meanings: List<Meaning>)
 
 @Serializable
-data class Phonetic(val text: String, val audio: String? = null)
+data class Phonetic(val text: String? = null, val audio: String? = null)
 @Serializable
 data class Meaning(val partOfSpeech: String, val definitions: List<Definition>)
 @Serializable
@@ -57,7 +59,7 @@ object FreeDictionaryAPI: Dict {
         val obj = withContext(Dispatchers.IO) {
             val (jsonData, err) = getThis<List<FreeDictionaryAPIResponse>>(url)
             if (err != "") {
-                Toast.makeText(context, err.toString(), Toast.LENGTH_SHORT).show()
+                Log.e("", err)
                 return@withContext null
             }
             if (jsonData!!.isEmpty()) {
@@ -68,18 +70,45 @@ object FreeDictionaryAPI: Dict {
         } ?: return null
         val html = createHTML().div {
             div(classes="free-dictionary") {
-                div(classes="card") {
-                    div(classes="card-body") {
-                        div(classes="pronunciation") {
-                            h3(classes = "pronunciation-title") {
-                                +"Pronunciation"
-                            }
-                            if (obj.phonetics.isNotEmpty() && obj.phonetics[0].audio != null) {
-                                audio(classes = "audio") {
-                                    controls = true
-                                    source {
-                                        src = obj.phonetics[0].audio!!
-                                        type = "audio/mp3"
+
+                if (obj.phonetic != null) {
+                    div(classes="phonetics") {
+                        p(classes="phonetic") {
+                            +obj.phonetic
+                        }
+                    }
+                }
+                if (obj.origin != null) {
+                    p(classes="origin") {
+                        span(classes="origin-label") {
+                            +"Origin:"
+                        }
+                        +obj.origin
+                    }
+                }
+                div(classes="meanings") {
+                    for (meaning in obj.meanings) {
+                        for (definition in meaning.definitions) {
+                            div(classes="meaning") {
+                                h3(classes="partOfSpeech") {
+                                    +meaning.partOfSpeech
+                                }
+                                p(classes="definition") {
+                                    +definition.definition
+                                }
+                                if (definition.example != null) {
+                                    p(classes="example") {
+                                        +definition.example
+                                    }
+                                }
+                                if (definition.synonyms.isNotEmpty()) {
+                                    p(classes="synonyms") {
+                                        +("Synonyms: " + definition.synonyms.joinToString(", "))
+                                    }
+                                }
+                                if (definition.antonyms.isNotEmpty()) {
+                                    p(classes="antonyms") {
+                                        +("Antonyms: " + definition.antonyms.joinToString(", "))
                                     }
                                 }
                             }
