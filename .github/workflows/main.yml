@@ -1,0 +1,48 @@
+name: Build and Publish
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 1.17
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.17
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Set Filename
+        id: filename
+        run: echo "::set-output name=filename::app-$(date +'%Y-%m-%d-%H_%M_%S')-$(git rev-parse --short HEAD).apk"
+
+      - name: Get App version code
+        id: version
+        run: |
+          echo "::set-output name=commits::$(git rev-list --count HEAD)"
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.commits }}
+          release_name: Release ${{ steps.version.outputs.commits }}
+          draft: false
+          prerelease: false
+
+      - name: Upload APK
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: app/build/outputs/apk/debug/app-debug.apk
+          asset_name: ${{ steps.filename.outputs.filename }}
+          asset_content_type: application/vnd.android.package-archive
