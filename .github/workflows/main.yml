@@ -27,7 +27,7 @@ jobs:
       - name: Get App version code
         id: version
         run: |
-          echo "::set-output name=commits::$(git rev-list --count HEAD)"
+          echo "::set-output name=commits::$(git rev-list --count HEAD)-$(date +'%Y%m%d%H%M%S')"
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
